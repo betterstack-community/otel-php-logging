@@ -1,0 +1,10 @@
+Hello {{ username }},
+
+We're reaching out to inform you about updates to our Terms of Service (ToS) that will come into effect on {{ date }}.
+
+We encourage you to review the updated Terms of Service in detail to understand how these changes may affect your use of our services.
+
+Thank you for your attention to this matter.
+
+Best regards,
+ACME LLC

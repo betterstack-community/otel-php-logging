@@ -1,0 +1,14 @@
+Hello {{ username }},
+
+We want to inform you about an upcoming maintenance event that may affect your use of our services.
+
+Event details:
+
+Date: {{ date }}
+Time: {{ start_time }} to {{ end_time}}
+Impact: During this period, {{ impact }}
+
+We apologize for any inconvenience this may cause and appreciate your understanding.
+
+Best regards,
+ACME LLC

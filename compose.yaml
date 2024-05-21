@@ -1,0 +1,68 @@
+x-aws-settings: &aws-settings
+  AWS_ACCESS_KEY_ID: dummy-access-key-id
+  AWS_SECRET_ACCESS_KEY: dummy-secret-access-key
+  AWS_REGION: us-west-2
+  AWS_ENDPOINT_URL: http://queue:9324
+  AWS_QUEUE_URL: http://queue:9324/000000000000/notification-events
+
+services:
+  notification-engine:
+    image: notification-engine:0.1.0
+    build:
+      context: notification-engine
+      dockerfile: ../Dockerfile
+    environment:
+      <<: *aws-settings
+      CMS_API_URL: http://cms
+      OTEL_SERVICE_NAME: notification-engine
+      SQS_RECEIVE_INTERVAL: 3
+    depends_on: [queue, cms, mailgun, postmark, collector, jaeger]
+
+  cms:
+    image: cms:0.1.0
+    build:
+      context: cms
+      dockerfile: ../Dockerfile
+    environment:
+      OTEL_SERVICE_NAME: cms
+    depends_on: [collector, jaeger]
+    command: ["-S", "0.0.0.0:80", "/app/public/index.php"]
+
+  producer:
+    image: producer:0.1.0
+    build:
+      context: producer
+      dockerfile: ../Dockerfile
+    environment:
+      <<: *aws-settings
+      OTEL_SERVICE_NAME: producer
+      SQS_SEND_INTERVAL: 15
+    depends_on: [queue, collector, jaeger]
+
+  queue:
+    image: softwaremill/elasticmq-native:1.6.1
+    volumes:
+      - ./elasticmq.conf:/opt/elasticmq.conf
+
+  mailgun:
+    image: axllent/mailpit:v1.17.0
+    ports:
+      - 18025:8025
+
+  postmark:
+    image: axllent/mailpit:v1.17.0
+    ports:
+      - 28025:8025
+
+  collector:
+    image: otel/opentelemetry-collector:0.100.0
+    volumes:
+      - ./otelcol.yaml:/etc/otelcol/config.yaml
+    depends_on: [jaeger]
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    environment:
+      JAEGER_PROPAGATION: w3c
+    ports:
+      - 16686:16686

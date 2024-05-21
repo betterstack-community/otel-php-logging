@@ -1,0 +1,19 @@
+{
+    "autoload": {
+        "psr-4": {
+            "Demo\\Project\\": "src/"
+        }
+    },
+    "require": {
+        "aws/aws-sdk-php": "^3.304",
+        "nette/mail": "^4.0",
+        "open-telemetry/sdk": "^1.0",
+        "open-telemetry/exporter-otlp": "^1.0",
+        "ext-opentelemetry": "*"
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": false
+        }
+    }
+}

@@ -1,0 +1,17 @@
+Hello {{ username }},
+
+Our security systems have detected suspicious behavior that appears to deviate from your typical usage patterns.
+
+Details:
+
+Date and Time: {{ datetime }}
+IP Address: {{ ip }}
+Location: {{ location }}
+Type of Activity: {{ activity }}
+
+Please review your account to ensure it hasn't been compromised.
+
+Thank you for your attention to this matter and your cooperation in safeguarding your account.
+
+Best regards,
+ACME LLC
