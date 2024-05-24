@@ -16,7 +16,19 @@ services:
       CMS_API_URL: http://cms
       OTEL_SERVICE_NAME: notification-engine
       SQS_RECEIVE_INTERVAL: 3
-    depends_on: [queue, cms, mailgun, postmark, collector, jaeger]
+    depends_on:
+      queue:
+        condition: service_healthy
+      cms:
+        condition: service_started
+      mailgun:
+        condition: service_healthy
+      postmark:
+        condition: service_healthy
+      collector:
+        condition: service_started
+      jaeger:
+        condition: service_healthy
 
   cms:
     image: cms:0.1.0
@@ -25,8 +37,12 @@ services:
       dockerfile: ../Dockerfile
     environment:
       OTEL_SERVICE_NAME: cms
-    depends_on: [collector, jaeger]
     command: ["-S", "0.0.0.0:80", "/app/public/index.php"]
+    depends_on:
+      collector:
+        condition: service_started
+      jaeger:
+        condition: service_healthy
 
   producer:
     image: producer:0.1.0
@@ -37,12 +53,20 @@ services:
       <<: *aws-settings
       OTEL_SERVICE_NAME: producer
       SQS_SEND_INTERVAL: 15
-    depends_on: [queue, collector, jaeger]
+    depends_on:
+      queue:
+        condition: service_healthy
+      collector:
+        condition: service_started
+      jaeger:
+        condition: service_healthy
 
   queue:
     image: softwaremill/elasticmq-native:1.6.1
     volumes:
       - ./elasticmq.conf:/opt/elasticmq.conf
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-S" ,"-O", "-", "localhost:9324/?Action=ListQueues"]
 
   mailgun:
     image: axllent/mailpit:v1.17.0
@@ -58,7 +82,9 @@ services:
     image: otel/opentelemetry-collector:0.100.0
     volumes:
       - ./otelcol.yaml:/etc/otelcol/config.yaml
-    depends_on: [jaeger]
+    depends_on:
+      jaeger:
+        condition: service_healthy
 
   jaeger:
     image: jaegertracing/all-in-one:1.57
@@ -66,3 +92,5 @@ services:
       JAEGER_PROPAGATION: w3c
     ports:
       - 16686:16686
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-S" ,"-O", "-", "localhost:14269"]
